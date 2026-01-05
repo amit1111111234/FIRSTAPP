@@ -1,7 +1,9 @@
 package com.example.firstapp;
 
+import android.annotation.SuppressLint;
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -12,19 +14,19 @@ import com.google.firebase.auth.FirebaseAuth;
 
 
 public class MainActivity extends AppCompatActivity {
-
+    private static final String TAG = "FIRSTAPP: MyMainActivity";
     EditText nameEdit, emailEdit, passEdit, confirmEdit;
     Button btnSignUp;
     FirebaseAuth auth;
 
+    @SuppressLint("MissingInflatedId")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-
+        Log.d(TAG, "onCreate");
         auth = FirebaseAuth.getInstance();
 
-        nameEdit = findViewById(R.id.editTextName);
         emailEdit = findViewById(R.id.editTextEmail);
         passEdit = findViewById(R.id.editTextPassword);
         confirmEdit = findViewById(R.id.editTextConfirmPassword);
