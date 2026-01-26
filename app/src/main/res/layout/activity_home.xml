@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#1A1A2E"
-    tools:context=".MainActivity3">
+    tools:context=".ActivityHome">
 
     <LinearLayout
         android:id="@+id/headerSection"
@@ -32,32 +32,25 @@
             android:textSize="32sp" />
     </LinearLayout>
 
-    <FrameLayout
-        android:id="@+id/mapWrapper"
+    <fragment
+        android:id="@+id/map"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:layout_margin="24dp"
-        android:background="@drawable/input_border"
-        android:padding="4dp"
         app:layout_constraintBottom_toTopOf="@+id/bottomNavWrapper"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/headerSection">
+        app:layout_constraintTop_toBottomOf="@id/headerSection" />
 
-        <androidx.fragment.app.FragmentContainerView
-            android:id="@+id/map"
-            android:name="com.google.android.gms.maps.SupportMapFragment"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            tools:context=".MainActivity3" />
-    </FrameLayout>
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottomNavWrapper"
         android:layout_width="match_parent"
         android:layout_height="80dp"
         android:layout_margin="20dp"
-        android:background="@drawable/bottom_nav_bg"
         android:paddingHorizontal="24dp"
+        android:background="@android:drawable/dialog_holo_dark_frame"
+        android:backgroundTint="#16213E"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -67,25 +60,24 @@
             android:layout_width="32dp"
             android:layout_height="32dp"
             android:contentDescription="Home"
-            app:srcCompat="@android:drawable/ic_dialog_map"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:srcCompat="@android:drawable/ic_dialog_map"
             app:tint="#E6E6FA" />
 
         <ImageView
             android:id="@+id/btnAdd"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="@drawable/input_border"
-            android:contentDescription="Add"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:padding="8dp"
+            android:contentDescription="Add"
             android:src="@android:drawable/ic_input_add"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btnSearch"
             app:layout_constraintStart_toEndOf="@+id/btnHome"
             app:layout_constraintTop_toTopOf="parent"
-            />
+            app:tint="#B19CD9" />
 
         <ImageView
             android:id="@+id/btnSearch"
@@ -97,7 +89,6 @@
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:tint="#E6E6FA" />
-
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
