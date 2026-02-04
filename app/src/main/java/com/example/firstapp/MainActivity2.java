@@ -22,18 +22,15 @@ public class MainActivity2 extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
 
-        // Initialize Views
         emailEdit = findViewById(R.id.editTextEmail);
         passEdit = findViewById(R.id.editTextPassword);
         btnSignIn = findViewById(R.id.buttonSignIn);
         signUpLink = findViewById(R.id.textView2);
 
-        // Navigate back to Sign Up
         signUpLink.setOnClickListener(v -> {
             startActivity(new Intent(MainActivity2.this, MainActivity.class));
         });
 
-        // Login Logic
         btnSignIn.setOnClickListener(v -> {
             String email = emailEdit.getText().toString().trim();
             String pass = passEdit.getText().toString().trim();

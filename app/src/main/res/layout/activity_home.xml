@@ -5,7 +5,7 @@
     android:id="@+id/main"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#1A1A2E"
+    android:background="#6F8367"
     tools:context=".ActivityHome">
 
     <LinearLayout
@@ -20,19 +20,20 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Hello,"
-            android:textColor="#B19CD9"
+            android:textColor="#BCCFC2"
             android:textSize="18sp" />
 
         <TextView
+            android:id="@+id/userNameDisplay"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:fontFamily="sans-serif-black"
             android:text="User Name"
-            android:textColor="#B19CD9"
+            android:textColor="#BCCFC2"
             android:textSize="32sp" />
     </LinearLayout>
 
-    <fragment
+    <androidx.fragment.app.FragmentContainerView
         android:id="@+id/map"
         android:name="com.google.android.gms.maps.SupportMapFragment"
         android:layout_width="0dp"
@@ -45,12 +46,13 @@
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/bottomNavWrapper"
-        android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:layout_margin="20dp"
-        android:paddingHorizontal="24dp"
+        android:layout_width="0dp"
+        android:layout_height="70dp"
+        android:layout_marginHorizontal="24dp"
+        android:layout_marginBottom="24dp"
         android:background="@android:drawable/dialog_holo_dark_frame"
-        android:backgroundTint="#16213E"
+        android:backgroundTint="#3A3A36"
+        android:paddingHorizontal="24dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
@@ -59,37 +61,33 @@
             android:id="@+id/btnHome"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:contentDescription="Home"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:srcCompat="@android:drawable/ic_dialog_map"
-            app:tint="#E6E6FA" />
+            app:tint="#BCCFC2" />
 
         <ImageView
             android:id="@+id/btnAdd"
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:padding="8dp"
-            android:contentDescription="Add"
             android:src="@android:drawable/ic_input_add"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btnSearch"
             app:layout_constraintStart_toEndOf="@+id/btnHome"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#B19CD9" />
+            app:tint="#BCCFC2" />
 
         <ImageView
             android:id="@+id/btnSearch"
             android:layout_width="32dp"
             android:layout_height="32dp"
-            android:contentDescription="Search"
             android:src="@android:drawable/ic_menu_search"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="#E6E6FA" />
+            app:tint="#BCCFC2" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </androidx.constraintlayout.widget.ConstraintLayout>

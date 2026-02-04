@@ -22,7 +22,6 @@ public class MainActivity extends AppCompatActivity {
 
         auth = FirebaseAuth.getInstance();
 
-        // Initialize Views
         nameEdit = findViewById(R.id.editTextName);
         emailEdit = findViewById(R.id.editTextEmail);
         passEdit = findViewById(R.id.editTextPassword);
@@ -30,10 +29,8 @@ public class MainActivity extends AppCompatActivity {
         btnSignUp = findViewById(R.id.buttonSignUp);
         loginLink = findViewById(R.id.textViewLoginLink);
 
-        // Navigate to Login Page
         loginLink.setOnClickListener(v -> {
-            Intent intent = new Intent(MainActivity.this, MainActivity2.class);
-            startActivity(intent);
+            startActivity(new Intent(MainActivity.this, MainActivity2.class));
         });
 
         btnSignUp.setOnClickListener(v -> {
@@ -56,7 +53,11 @@ public class MainActivity extends AppCompatActivity {
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
                             Toast.makeText(MainActivity.this, "Account Created!", Toast.LENGTH_SHORT).show();
-                            startActivity(new Intent(MainActivity.this, ActivityHome.class));
+
+                            // PASSING THE NAME TO HOME
+                            Intent intent = new Intent(MainActivity.this, ActivityHome.class);
+                            intent.putExtra("USER_NAME", name);
+                            startActivity(intent);
                             finish();
                         } else {
                             Toast.makeText(MainActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();

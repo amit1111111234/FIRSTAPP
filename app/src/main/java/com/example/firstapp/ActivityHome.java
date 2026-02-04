@@ -1,71 +1,117 @@
 package com.example.firstapp;
 
+import android.Manifest;
+import android.content.Intent; // Essential for opening new pages
+import android.content.pm.PackageManager;
 import android.os.Bundle;
-import androidx.activity.EdgeToEdge;
+import android.widget.ImageView; // Essential for the + button
+import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.core.app.ActivityCompat;
+import androidx.fragment.app.Fragment;
 
-// Correct Google Maps Imports
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
-import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class ActivityHome extends AppCompatActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+    private FusedLocationProviderClient fusedLocationClient;
+    private static final int LOCATION_PERMISSION_REQUEST_CODE = 1;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
-        // 1. Setup UI and Edge-to-Edge
-        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_home);
 
-        // 2. Handle System Bar Padding
-        if (findViewById(R.id.main) != null) {
-            ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
-                Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(systemBars.left, systemBars.top, systemBars.right, 0);
-                return insets;
-            });
+        // Initialize Location Client
+        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
+        // --- USERNAME LOGIC ---
+        TextView userNameDisplay = findViewById(R.id.userNameDisplay);
+        String name = getIntent().getStringExtra("USER_NAME");
+        if (name != null && !name.isEmpty()) {
+            userNameDisplay.setText(name);
+        } else {
+            if (FirebaseAuth.getInstance().getCurrentUser() != null) {
+                String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+                DatabaseReference ref = FirebaseDatabase.getInstance().getReference("Users").child(uid).child("name");
+                ref.get().addOnSuccessListener(snapshot -> {
+                    if (snapshot.exists()) userNameDisplay.setText(snapshot.getValue(String.class));
+                });
+            }
         }
 
-        // 3. Initialize the Map Fragment
-        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
-                .findFragmentById(R.id.map);
-
+        // Initialize Map
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {
             mapFragment.getMapAsync(this);
         }
+
+        // --- THE FIX: ADD POINT BUTTON (+) ---
+        // We find the ImageView from your XML and tell it to open ActivityAddPoint
+        ImageView btnAdd = findViewById(R.id.btnAdd);
+        btnAdd.setOnClickListener(v -> {
+            Intent intent = new Intent(ActivityHome.this, ActivityAddPoint.class);
+            startActivity(intent);
+        });
+
+        // Home Button Centers on Current Location
+        findViewById(R.id.btnHome).setOnClickListener(v -> getDeviceLocation());
+
+        // Search Button
+        findViewById(R.id.btnSearch).setOnClickListener(v -> openSearchFragment(new SearchFragment()));
     }
 
-    /**
-     * This method fulfills the 'OnMapReadyCallback' contract.
-     * It must be outside of onCreate but inside the ActivityHome class.
-     */
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
+        updateLocationUI();
+        getDeviceLocation();
+    }
 
-        // Set a default location (Example: New York)
-        LatLng defaultLocation = new LatLng(40.7128, -74.0060);
+    private void updateLocationUI() {
+        if (mMap == null) return;
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                mMap.setMyLocationEnabled(true);
+                mMap.getUiSettings().setMyLocationButtonEnabled(false);
+            } else {
+                ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, LOCATION_PERMISSION_REQUEST_CODE);
+            }
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
 
-        // Add a marker and move the camera
-        mMap.addMarker(new MarkerOptions()
-                .position(defaultLocation)
-                .title("Current Location"));
+    private void getDeviceLocation() {
+        try {
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                fusedLocationClient.getLastLocation().addOnSuccessListener(this, location -> {
+                    if (location != null) {
+                        LatLng currentLatLng = new LatLng(location.getLatitude(), location.getLongitude());
+                        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(currentLatLng, 15f));
+                    }
+                });
+            }
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
+    }
 
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(defaultLocation, 12f));
-
-        // Enable basic UI settings
-        mMap.getUiSettings().setZoomControlsEnabled(true);
-        mMap.getUiSettings().setCompassEnabled(true);
+    private void openSearchFragment(Fragment fragment) {
+        getSupportFragmentManager().beginTransaction()
+                .replace(R.id.main, fragment)
+                .addToBackStack(null)
+                .commit();
     }
 }
