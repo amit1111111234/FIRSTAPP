@@ -1,104 +1,89 @@
 package com.example.firstapp;
 
-import android.Manifest;
-import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
 
-import com.google.android.gms.location.FusedLocationProviderClient;
-import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.firestore.FirebaseFirestore;
 
-import java.util.Locale;
+public class ActivityAddPoint extends AppCompatActivity implements OnMapReadyCallback {
 
-public class ActivityAddPoint extends AppCompatActivity {
-
-    // These names now match exactly what you use in onCreate
-    EditText etPointName, etSoldierName, etDescription, etCoordinates, etLocationName;
-    Button btnAddPoint;
-
-    private double selectedLat = 0, selectedLng = 0;
-    private String title, desc, uid;
-    private FusedLocationProviderClient fusedLocationClient;
-    private Location currentLocation;
+    private EditText etPointName, etSoldierName, etDescription;
+    private Button btnAddPoint;
+    private GoogleMap pickerMap;
+    private double selectedLat, selectedLng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_add_point);
 
-        fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-//        fetchCurrentLocation();
-
-        // Initializing views
         etPointName = findViewById(R.id.etPointName);
         etSoldierName = findViewById(R.id.etSoldierName);
         etDescription = findViewById(R.id.etDescription);
-        etCoordinates = findViewById(R.id.etCoordinates);
-        etLocationName = findViewById(R.id.etLocationName);
         btnAddPoint = findViewById(R.id.btnAddPointToMap);
 
-        // Click to get Coordinates
-        etCoordinates.setOnClickListener(v -> {
-            if (currentLocation != null) {
-                selectedLat = currentLocation.getLatitude();
-                selectedLng = currentLocation.getLongitude();
-                etCoordinates.setText(String.format(Locale.getDefault(), "%.6f, %.6f", selectedLat, selectedLng));
-            } else {
-//                fetchCurrentLocation();
-                Toast.makeText(this, "Fetching GPS... try again in a moment", Toast.LENGTH_SHORT).show();
-            }
-        });
+        SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
+                .findFragmentById(R.id.mapPicker);
+        if (mapFragment != null) mapFragment.getMapAsync(this);
 
-        // Click to Save (The fix for btnSave error)
-        btnAddPoint.setOnClickListener(v -> {
-            String title = etPointName.getText().toString().trim();
-            String desc = etDescription.getText().toString().trim();
+        btnAddPoint.setOnClickListener(v -> savePoint());
+    }
 
-            if (FirebaseAuth.getInstance().getCurrentUser() == null) {
-                Toast.makeText(this, "Error: User not logged in", Toast.LENGTH_SHORT).show();
-                return;
-            }
+    @Override
+    public void onMapReady(@NonNull GoogleMap googleMap) {
+        pickerMap = googleMap;
+        LatLng initial = new LatLng(32.0853, 34.7818);
+        pickerMap.moveCamera(CameraUpdateFactory.newLatLngZoom(initial, 12f));
 
-            String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-
-            if (title.isEmpty() || selectedLat == 0) {
-                Toast.makeText(this, "Please fill in Name and click Coordinates", Toast.LENGTH_SHORT).show();
-                return;
-            }
-
-            saveMapPoint();
+        pickerMap.setOnCameraIdleListener(() -> {
+            LatLng center = pickerMap.getCameraPosition().target;
+            selectedLat = center.latitude;
+            selectedLng = center.longitude;
         });
     }
-            // Create and Save the Object
 
+    private void savePoint() {
+        String title = etPointName.getText().toString().trim();
+        String soldier = etSoldierName.getText().toString().trim();
+        String desc = etDescription.getText().toString().trim();
 
-    private void fetchCurrentLocation() {
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-            fusedLocationClient.getLastLocation().addOnSuccessListener(location -> {
-                if (location != null) currentLocation = location;
-            });
-        } else {
-            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 100);
+        if (FirebaseAuth.getInstance().getCurrentUser() == null) {
+            Toast.makeText(this, "Log in first!", Toast.LENGTH_SHORT).show();
+            return;
         }
-    }
 
-    private void saveMapPoint() {
-        MapPoint newPoint = new MapPoint(title, desc, selectedLat, selectedLng, uid);
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String fullInfo = soldier + "\n" + desc;
 
-            FirebaseDatabase.getInstance().getReference("Points")
-                    .push()
-                    .setValue(newPoint)
-                    .addOnSuccessListener(aVoid -> {
-                        Toast.makeText(this, "Point Added Successfully!", Toast.LENGTH_SHORT).show();
-                        finish();
-                    })
-                    .addOnFailureListener(e -> Toast.makeText(this, "Failed: " + e.getMessage(), Toast.LENGTH_SHORT).show());
-        };
+        if (title.isEmpty()) {
+            Toast.makeText(this, "Please enter a name", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        MapPoint point = new MapPoint(title, fullInfo, selectedLat, selectedLng, uid);
+
+        FirebaseFirestore.getInstance().collection("Points")
+                .add(point)// .add() creates a random Document ID automatically
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        Toast.makeText(this, "Saved to Firestore Collection!", Toast.LENGTH_SHORT).show();
+                        finish(); // This returns you to Home Page
+                    } else {
+                        Toast.makeText(this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                        Log.e("AddPoint", task.getException().getMessage());
+                    }
+                });
     }
+}
