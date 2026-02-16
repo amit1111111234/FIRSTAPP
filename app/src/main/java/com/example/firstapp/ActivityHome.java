@@ -16,16 +16,10 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
-import com.google.android.gms.tasks.OnCompleteListener;
-import com.google.android.gms.tasks.Task;
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
-import com.google.firebase.firestore.QuerySnapshot;
 
 public class ActivityHome extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -38,15 +32,18 @@ public class ActivityHome extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(R.layout.activity_home);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) mapFragment.getMapAsync(this);
 
-        findViewById(R.id.btnAdd).setOnClickListener(v -> {
-            startActivity(new Intent(this, ActivityAddPoint.class));
-        });
-
+        findViewById(R.id.btnAdd).setOnClickListener(v -> startActivity(new Intent(this, ActivityAddPoint.class)));
         findViewById(R.id.btnHome).setOnClickListener(v -> getDeviceLocation());
+        findViewById(R.id.btnSearch).setOnClickListener(v -> {
+            getSupportFragmentManager().beginTransaction()
+                    .setCustomAnimations(android.R.anim.fade_in, android.R.anim.fade_out)
+                    .replace(R.id.fragment_container, new SearchFragment())
+                    .addToBackStack(null)
+                    .commit();
+        });
     }
 
     @Override
@@ -61,34 +58,46 @@ public class ActivityHome extends AppCompatActivity implements OnMapReadyCallbac
 
         loadPointsFromFirebase();
 
+
+        // UPDATED: Click listener to open Fragment instead of InfoWindow
         mMap.setOnMarkerClickListener(marker -> {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
-            marker.showInfoWindow();
-            return true;
+
+            // Retrieve the full MapPoint object from the marker
+            MapPoint p = (MapPoint) marker.getTag();
+
+            if (p != null) {
+                PointDetailsDialogFragment dialog = PointDetailsDialogFragment.newInstance(p);
+                dialog.show(getSupportFragmentManager(), "point_details");
+            }
+            return true; // "true" prevents the default Google InfoWindow from appearing
         });
+    }
+    @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        setIntent(intent); // Update the intent with the new search data
+        if (intent.hasExtra("selected_point")) {
+            MapPoint p = (MapPoint) intent.getSerializableExtra("selected_point");
+            focusOnPoint(p);
+        }
     }
 
     private void loadPointsFromFirebase() {
         FirebaseFirestore.getInstance().collection("Points")
-                .get()
-                .addOnCompleteListener(new OnCompleteListener<QuerySnapshot>() {
-                    @Override
-                    public void onComplete(@NonNull Task<QuerySnapshot> task) {
-                        if (task.isSuccessful()) {
-                            if (mMap == null) return;
-                            mMap.clear();
-                            for (QueryDocumentSnapshot documentSnapshot : task.getResult()) {
-                                MapPoint p = documentSnapshot.toObject(MapPoint.class);
-                                if (p != null) {
-                                    mMap.addMarker(new MarkerOptions()
-                                            .position(new LatLng(p.latitude, p.longitude))
-                                            .title(p.title)
-                                            .snippet(p.description)
-                                            .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-                                }
-                            }
-                        } else {
-                            // לטפל בשגיאה
+                .addSnapshotListener((value, error) -> {
+                    if (error != null) return;
+                    if (value != null && mMap != null) {
+                        mMap.clear();
+                        for (QueryDocumentSnapshot doc : value) {
+                            MapPoint p = doc.toObject(MapPoint.class);
+                            Marker m = mMap.addMarker(new MarkerOptions()
+                                    .position(new LatLng(p.latitude, p.longitude))
+                                    .title(p.title)
+                                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
+
+                            // UPDATED: Attach the full data object to the marker
+                            if (m != null) m.setTag(p);
                         }
                     }
                 });
@@ -101,6 +110,16 @@ public class ActivityHome extends AppCompatActivity implements OnMapReadyCallbac
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15f));
                 }
             });
+
+        }
+    }private void focusOnPoint(MapPoint p) {
+        if (p != null && mMap != null) {
+            LatLng location = new LatLng(p.latitude, p.longitude);
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 16f), 1000, null);
+
+            // Show the dialog fragment immediately
+            PointDetailsDialogFragment dialog = PointDetailsDialogFragment.newInstance(p);
+            dialog.show(getSupportFragmentManager(), "point_details");
         }
     }
 }

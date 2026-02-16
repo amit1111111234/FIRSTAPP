@@ -14,7 +14,6 @@ import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.firestore.FirebaseFirestore;
 
 public class ActivityAddPoint extends AppCompatActivity implements OnMapReadyCallback {
@@ -44,6 +43,7 @@ public class ActivityAddPoint extends AppCompatActivity implements OnMapReadyCal
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         pickerMap = googleMap;
+        // Default focus (e.g., Tel Aviv area)
         LatLng initial = new LatLng(32.0853, 34.7818);
         pickerMap.moveCamera(CameraUpdateFactory.newLatLngZoom(initial, 12f));
 
@@ -64,22 +64,28 @@ public class ActivityAddPoint extends AppCompatActivity implements OnMapReadyCal
             return;
         }
 
-        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
-        String fullInfo = soldier + "\n" + desc;
-
         if (title.isEmpty()) {
             Toast.makeText(this, "Please enter a name", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        MapPoint point = new MapPoint(title, fullInfo, selectedLat, selectedLng, uid);
+        String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
+        String fullInfo = soldier + "\n" + desc;
+
+        // --- THE FIX ---
+        // We use the soldier's name as the 'locationName' for the popup,
+        // or you can set this to a generic string like "Memorial Point"
+        String locationValue = soldier.isEmpty() ? "Memorial Site" : "In memory of " + soldier;
+
+        // Creating the point with ALL 6 arguments required by your MapPoint constructor
+        MapPoint point = new MapPoint(title, fullInfo, selectedLat, selectedLng, uid, locationValue);
 
         FirebaseFirestore.getInstance().collection("Points")
-                .add(point)// .add() creates a random Document ID automatically
+                .add(point)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        Toast.makeText(this, "Saved to Firestore Collection!", Toast.LENGTH_SHORT).show();
-                        finish(); // This returns you to Home Page
+                        Toast.makeText(this, "Saved to Firestore!", Toast.LENGTH_SHORT).show();
+                        finish();
                     } else {
                         Toast.makeText(this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         Log.e("AddPoint", task.getException().getMessage());

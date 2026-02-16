@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#3A3A36"
+    android:orientation="vertical"
+    android:padding="24dp">
+
+    <View
+        android:layout_width="40dp"
+        android:layout_height="4dp"
+        android:layout_gravity="center"
+        android:layout_marginBottom="16dp"
+        android:background="#6F8367" />
+
+    <TextView
+        android:id="@+id/tvPointTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Point Title"
+        android:textColor="#BCCFC2"
+        android:textSize="22sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/tvLocationName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Location Address"
+        android:textColor="#8E8EAA"
+        android:textSize="14sp" />
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginVertical="16dp"
+        android:background="#6F8367" />
+
+    <TextView
+        android:id="@+id/tvDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="The soldier's story and point description will appear here."
+        android:textColor="#FFFFFF"
+        android:textSize="16sp"
+        android:lineSpacingExtra="4dp" />
+
+</LinearLayout>
