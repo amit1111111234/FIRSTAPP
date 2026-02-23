@@ -1,6 +1,6 @@
 package com.example.firstapp;
 
-import android.content.Intent;
+import android.content.Context;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -26,10 +26,27 @@ public class SearchFragment extends Fragment {
     private List<MapPoint> filteredPoints = new ArrayList<>();
     private SearchAdapter adapter;
 
+    // 1. The Interface "Phone Line"
+    public interface OnSearchClickListener {
+        void onPointSelected(MapPoint point);
+    }
+
+    private OnSearchClickListener callback;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        // Link this fragment to the Activity
+        if (context instanceof OnSearchClickListener) {
+            callback = (OnSearchClickListener) context;
+        } else {
+            throw new RuntimeException(context.toString() + " must implement OnSearchClickListener");
+        }
+    }
+
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
-
         rvResults = view.findViewById(R.id.rvResults);
         etSearch = view.findViewById(R.id.etSearchField);
 
@@ -37,7 +54,6 @@ public class SearchFragment extends Fragment {
         adapter = new SearchAdapter(filteredPoints);
         rvResults.setAdapter(adapter);
 
-        // 1. Fetch from FIRESTORE (matching your ActivityHome)
         FirebaseFirestore.getInstance().collection("Points")
                 .get()
                 .addOnSuccessListener(queryDocumentSnapshots -> {
@@ -46,9 +62,9 @@ public class SearchFragment extends Fragment {
                         MapPoint p = doc.toObject(MapPoint.class);
                         allPoints.add(p);
                     }
+                    filterResults("");
                 });
 
-        // 2. Search Listener
         etSearch.addTextChangedListener(new TextWatcher() {
             @Override
             public void onTextChanged(CharSequence s, int start, int before, int count) {
@@ -66,28 +82,25 @@ public class SearchFragment extends Fragment {
     private void filterResults(String query) {
         filteredPoints.clear();
         if (query.isEmpty()) {
-            adapter.notifyDataSetChanged();
-            return;
+            filteredPoints.addAll(allPoints);
         }
-
+        else {
         for (MapPoint p : allPoints) {
             if (p.title != null && p.title.toLowerCase().contains(query.toLowerCase())) {
                 filteredPoints.add(p);
             }
         }
+        }
         adapter.notifyDataSetChanged();
     }
 
-    // --- INNER ADAPTER CLASS ---
     private class SearchAdapter extends RecyclerView.Adapter<SearchAdapter.ViewHolder> {
         private List<MapPoint> list;
-
         public SearchAdapter(List<MapPoint> list) { this.list = list; }
 
         @NonNull
         @Override
         public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-            // Creating a simple row layout programmatically to save you a file
             View v = LayoutInflater.from(parent.getContext()).inflate(android.R.layout.simple_list_item_2, parent, false);
             return new ViewHolder(v);
         }
@@ -96,16 +109,17 @@ public class SearchFragment extends Fragment {
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             MapPoint p = list.get(position);
             holder.text1.setText(p.title);
-            holder.text1.setTextColor(getResources().getColor(android.R.color.white));
-            holder.itemView.setOnClickListener(v -> {
-                Intent intent = new Intent(getActivity(), ActivityHome.class);
-                // "REORDER_TO_FRONT" brings the existing map to the top instead of creating a new one
-                intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-                intent.putExtra("selected_point", p);
-                startActivity(intent);
-            });
+            holder.text1.setTextColor(0xFFFFFFFF);
             holder.text2.setText(p.description);
-            holder.text2.setTextColor(0xFFBCCFC2); // Sage Whisk color
+            holder.text2.setTextColor(0xFFBCCFC2);
+
+            // Trigger the callback and close the fragment
+            holder.itemView.setOnClickListener(v -> {
+                if (callback != null) {
+                    callback.onPointSelected(p);
+                    getParentFragmentManager().popBackStack(); // Go back to map
+                }
+            });
         }
 
         @Override

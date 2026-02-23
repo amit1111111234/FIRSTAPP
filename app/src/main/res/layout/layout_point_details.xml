@@ -45,5 +45,14 @@
         android:textColor="#FFFFFF"
         android:textSize="16sp"
         android:lineSpacingExtra="4dp" />
+    <Button
+        android:id="@+id/btnNavigate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:backgroundTint="#6F8367"
+        android:text="Take Me There"
+        android:textColor="#FFFFFF"
+        android:textStyle="bold" />
 
 </LinearLayout>

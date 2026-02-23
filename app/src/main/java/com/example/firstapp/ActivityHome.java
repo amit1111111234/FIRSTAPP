@@ -4,6 +4,8 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
+import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -18,22 +20,30 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.QueryDocumentSnapshot;
 
-public class ActivityHome extends AppCompatActivity implements OnMapReadyCallback {
+public class ActivityHome extends AppCompatActivity implements OnMapReadyCallback, SearchFragment.OnSearchClickListener {
 
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
+    private TextView tvWelcome; // This will handle the user name display
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
+        // INITIALIZE VIEW - matching the ID in your XML
+        tvWelcome = findViewById(R.id.tvWelcome);
+
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) mapFragment.getMapAsync(this);
+
+        // Fetch name from Firestore immediately
+        fetchAndShowName();
 
         findViewById(R.id.btnAdd).setOnClickListener(v -> startActivity(new Intent(this, ActivityAddPoint.class)));
         findViewById(R.id.btnHome).setOnClickListener(v -> getDeviceLocation());
@@ -47,6 +57,16 @@ public class ActivityHome extends AppCompatActivity implements OnMapReadyCallbac
     }
 
     @Override
+    public void onPointSelected(MapPoint p) {
+        if (p != null && mMap != null) {
+            LatLng location = new LatLng(p.latitude, p.longitude);
+            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 17f), 1000, null);
+            PointDetailsDialogFragment dialog = PointDetailsDialogFragment.newInstance(p);
+            dialog.show(getSupportFragmentManager(), "point_details");
+        }
+    }
+
+    @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         mMap = googleMap;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -55,32 +75,15 @@ public class ActivityHome extends AppCompatActivity implements OnMapReadyCallbac
         } else {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1);
         }
-
         loadPointsFromFirebase();
-
-
-        // UPDATED: Click listener to open Fragment instead of InfoWindow
         mMap.setOnMarkerClickListener(marker -> {
             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(marker.getPosition(), 15f));
-
-            // Retrieve the full MapPoint object from the marker
             MapPoint p = (MapPoint) marker.getTag();
-
             if (p != null) {
-                PointDetailsDialogFragment dialog = PointDetailsDialogFragment.newInstance(p);
-                dialog.show(getSupportFragmentManager(), "point_details");
+                onPointSelected(p);
             }
-            return true; // "true" prevents the default Google InfoWindow from appearing
+            return true;
         });
-    }
-    @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        setIntent(intent); // Update the intent with the new search data
-        if (intent.hasExtra("selected_point")) {
-            MapPoint p = (MapPoint) intent.getSerializableExtra("selected_point");
-            focusOnPoint(p);
-        }
     }
 
     private void loadPointsFromFirebase() {
@@ -95,8 +98,6 @@ public class ActivityHome extends AppCompatActivity implements OnMapReadyCallbac
                                     .position(new LatLng(p.latitude, p.longitude))
                                     .title(p.title)
                                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_GREEN)));
-
-                            // UPDATED: Attach the full data object to the marker
                             if (m != null) m.setTag(p);
                         }
                     }
@@ -110,16 +111,22 @@ public class ActivityHome extends AppCompatActivity implements OnMapReadyCallbac
                     mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(location.getLatitude(), location.getLongitude()), 15f));
                 }
             });
-
         }
-    }private void focusOnPoint(MapPoint p) {
-        if (p != null && mMap != null) {
-            LatLng location = new LatLng(p.latitude, p.longitude);
-            mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(location, 16f), 1000, null);
+    }
 
-            // Show the dialog fragment immediately
-            PointDetailsDialogFragment dialog = PointDetailsDialogFragment.newInstance(p);
-            dialog.show(getSupportFragmentManager(), "point_details");
+    private void fetchAndShowName() {
+        String uid = FirebaseAuth.getInstance().getUid();
+        if (uid != null) {
+            FirebaseFirestore.getInstance().collection("Users").document(uid)
+                    .get()
+                    .addOnSuccessListener(documentSnapshot -> {
+                        if (documentSnapshot.exists() && tvWelcome != null) {
+                            String name = documentSnapshot.getString("name");
+                            if (name != null && !name.isEmpty()) {
+                                tvWelcome.setText(name);
+                            }
+                        }
+                    });
         }
     }
 }
