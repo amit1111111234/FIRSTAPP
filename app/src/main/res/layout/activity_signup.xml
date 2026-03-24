@@ -7,7 +7,7 @@
     android:layout_height="match_parent"
     android:padding="32dp"
     android:background="#3A3A36"
-    tools:context=".MainActivity">
+    tools:context=".SignUpActivity">
 
     <TextView
         android:id="@+id/textViewHeader"

@@ -6,27 +6,38 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#3A3A36"
-    android:padding="24dp"
+    android:padding="16dp"
     tools:context=".ActivityAddPoint">
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:tint="#BCCFC2" />
 
     <TextView
         android:id="@+id/tvTitle"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Add Point on Map"
+        android:text="Add Point"
         android:textColor="#BCCFC2"
-        android:textSize="28sp"
+        android:textSize="24sp"
         android:fontFamily="sans-serif-black"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toTopOf="@id/btnBack"
+        app:layout_constraintBottom_toBottomOf="@id/btnBack"
+        app:layout_constraintStart_toEndOf="@id/btnBack"
+        android:layout_marginStart="8dp" />
 
     <ScrollView
         android:layout_width="match_parent"
         android:layout_height="0dp"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
         android:layout_marginBottom="16dp"
-        app:layout_constraintTop_toBottomOf="@id/tvTitle"
+        app:layout_constraintTop_toBottomOf="@id/btnBack"
         app:layout_constraintBottom_toTopOf="@id/btnAddPointToMap">
 
         <LinearLayout
@@ -72,13 +83,11 @@
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:layout_marginTop="16dp">
-
                 <fragment
                     android:id="@+id/mapPicker"
                     android:name="com.google.android.gms.maps.SupportMapFragment"
                     android:layout_width="match_parent"
                     android:layout_height="match_parent" />
-
                 <ImageView
                     android:layout_width="45dp"
                     android:layout_height="45dp"
@@ -98,7 +107,6 @@
                 android:textColorHint="#8E8EAA"
                 android:backgroundTint="#BCCFC2"
                 android:inputType="text" />
-
         </LinearLayout>
     </ScrollView>
 

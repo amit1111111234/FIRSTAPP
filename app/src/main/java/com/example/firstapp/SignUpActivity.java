@@ -8,25 +8,25 @@ import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import com.google.firebase.auth.FirebaseAuth;
-import com.google.firebase.firestore.FirebaseFirestore; // Added
+import com.google.firebase.firestore.FirebaseFirestore;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class MainActivity extends AppCompatActivity {
+public class SignUpActivity extends AppCompatActivity {
     EditText nameEdit, emailEdit, passEdit, confirmEdit;
     Button btnSignUp;
     TextView loginLink;
     FirebaseAuth auth;
-    FirebaseFirestore db; // Added
+    FirebaseFirestore db;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_signup);
 
         auth = FirebaseAuth.getInstance();
-        db = FirebaseFirestore.getInstance(); // Added
+        db = FirebaseFirestore.getInstance();
 
         nameEdit = findViewById(R.id.editTextName);
         emailEdit = findViewById(R.id.editTextEmail);
@@ -36,7 +36,7 @@ public class MainActivity extends AppCompatActivity {
         loginLink = findViewById(R.id.textViewLoginLink);
 
         loginLink.setOnClickListener(v -> {
-            startActivity(new Intent(MainActivity.this, MainActivity2.class));
+            startActivity(new Intent(SignUpActivity.this, LogInActivity.class));
         });
 
         btnSignUp.setOnClickListener(v -> {
@@ -58,22 +58,22 @@ public class MainActivity extends AppCompatActivity {
             auth.createUserWithEmailAndPassword(email, pass)
                     .addOnCompleteListener(task -> {
                         if (task.isSuccessful()) {
-                            // SAVE NAME TO FIRESTORE
+
                             String uid = auth.getCurrentUser().getUid();
                             Map<String, Object> userMap = new HashMap<>();
                             userMap.put("name", name);
 
                             db.collection("Users").document(uid).set(userMap)
                                     .addOnSuccessListener(aVoid -> {
-                                        Toast.makeText(MainActivity.this, "Account Created!", Toast.LENGTH_SHORT).show();
-                                        startActivity(new Intent(MainActivity.this, ActivityHome.class));
+                                        Toast.makeText(SignUpActivity.this, "Account Created!", Toast.LENGTH_SHORT).show();
+                                        startActivity(new Intent(SignUpActivity.this, ActivityHome.class));
                                         finish();
                                     })
                                     .addOnFailureListener(e -> {
-                                        Toast.makeText(MainActivity.this, "Database Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                                        Toast.makeText(SignUpActivity.this, "Database Error: " + e.getMessage(), Toast.LENGTH_SHORT).show();
                                     });
                         } else {
-                            Toast.makeText(MainActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(SignUpActivity.this, "Error: " + task.getException().getMessage(), Toast.LENGTH_SHORT).show();
                         }
                     });
         });

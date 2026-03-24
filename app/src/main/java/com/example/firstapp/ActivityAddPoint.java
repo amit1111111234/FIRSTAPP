@@ -38,12 +38,12 @@ public class ActivityAddPoint extends AppCompatActivity implements OnMapReadyCal
         if (mapFragment != null) mapFragment.getMapAsync(this);
 
         btnAddPoint.setOnClickListener(v -> savePoint());
+        findViewById(R.id.btnBack).setOnClickListener(v -> finish());
     }
 
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
         pickerMap = googleMap;
-        // Default focus (e.g., Tel Aviv area)
         LatLng initial = new LatLng(32.0853, 34.7818);
         pickerMap.moveCamera(CameraUpdateFactory.newLatLngZoom(initial, 12f));
 
@@ -72,12 +72,8 @@ public class ActivityAddPoint extends AppCompatActivity implements OnMapReadyCal
         String uid = FirebaseAuth.getInstance().getCurrentUser().getUid();
         String fullInfo = soldier + "\n" + desc;
 
-        // --- THE FIX ---
-        // We use the soldier's name as the 'locationName' for the popup,
-        // or you can set this to a generic string like "Memorial Point"
         String locationValue = soldier.isEmpty() ? "Memorial Site" : "In memory of " + soldier;
 
-        // Creating the point with ALL 6 arguments required by your MapPoint constructor
         MapPoint point = new MapPoint(title, fullInfo, selectedLat, selectedLng, uid, locationValue);
 
         FirebaseFirestore.getInstance().collection("Points")

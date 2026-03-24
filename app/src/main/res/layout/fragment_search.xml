@@ -5,31 +5,41 @@
     android:layout_height="match_parent"
     android:background="#6F8367"
     android:clickable="true"
-    android:focusable="true">
+    android:focusable="true"
+    android:padding="16dp">
+
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:src="@android:drawable/ic_menu_close_clear_cancel"
+        app:layout_constraintBottom_toBottomOf="@id/searchCard"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@id/searchCard"
+        app:tint="#BCCFC2" />
 
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/searchCard"
-        android:layout_width="match_parent"
-        android:layout_height="60dp"
-        android:layout_margin="16dp"
-        android:layout_marginTop="56dp"
+        android:layout_width="0dp"
+        android:layout_height="54dp"
+        android:layout_marginStart="8dp"
         app:cardBackgroundColor="#3A3A36"
-        app:cardCornerRadius="30dp"
-        app:cardElevation="8dp"
-        app:layout_constraintHorizontal_bias="0.625"
+        app:cardCornerRadius="27dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btnBack"
         app:layout_constraintTop_toTopOf="parent">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
             android:paddingHorizontal="16dp">
 
             <ImageView
-                android:layout_width="24dp"
-                android:layout_height="24dp"
-                android:src="@android:drawable/ic_menu_search"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:src="@android:drawable/ic_search_category_default"
                 app:tint="#BCCFC2" />
 
             <EditText
@@ -39,44 +49,65 @@
                 android:layout_marginStart="12dp"
                 android:background="@android:color/transparent"
                 android:hint="Search points..."
+                android:imeOptions="actionSearch"
                 android:inputType="text"
                 android:textColor="#FFFFFF"
-                android:textColorHint="#8E8EAA" />
+                android:textColorHint="#8E8EAA"
+                android:textSize="16sp" />
         </LinearLayout>
     </com.google.android.material.card.MaterialCardView>
 
-    <ScrollView
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvResults"
         android:layout_width="match_parent"
         android:layout_height="0dp"
+        android:layout_marginTop="16dp"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/searchCard" />
+
+    <LinearLayout
+        android:id="@+id/layoutNoResults"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/searchCard">
 
-        <LinearLayout
-            android:layout_width="match_parent"
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:orientation="vertical"
-            android:padding="16dp">
+            android:layout_marginBottom="20dp"
+            android:text="No points found"
+            android:textColor="#BCCFC2"
+            android:textSize="18sp" />
 
-            <TextView
-                android:id="@+id/tvAllPointsHeader"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="All points"
-                android:textColor="#BCCFC2"
-                android:textSize="18sp"
-                android:textStyle="bold"
-                android:layout_marginTop="16dp"
-                android:layout_marginBottom="8dp"/>
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/btnAddMissingPoint"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            app:cardBackgroundColor="#3A3A36"
+            app:cardCornerRadius="15dp"
+            app:cardElevation="4dp">
 
+            <ImageView
+                android:layout_width="30dp"
+                android:layout_height="30dp"
+                android:layout_gravity="center"
+                android:src="@android:drawable/ic_input_add"
+                app:tint="#BCCFC2" />
+        </com.google.android.material.card.MaterialCardView>
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvResults"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:nestedScrollingEnabled="false" />
-
-        </LinearLayout>
-    </ScrollView>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Add it to the map"
+            android:textColor="#FFFFFF"
+            android:textSize="14sp" />
+    </LinearLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -16,7 +16,6 @@ public class PointDetailsDialogFragment extends BottomSheetDialogFragment {
 
     private MapPoint point;
 
-    // Static method to initialize the fragment with data
     public static PointDetailsDialogFragment newInstance(MapPoint point) {
         PointDetailsDialogFragment fragment = new PointDetailsDialogFragment();
         Bundle args = new Bundle();
@@ -49,11 +48,10 @@ public class PointDetailsDialogFragment extends BottomSheetDialogFragment {
                 Intent mapIntent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
                 mapIntent.setPackage("com.google.android.apps.maps");
 
-                // Use requireActivity() to avoid the NullPointer warning
                 if (mapIntent.resolveActivity(requireActivity().getPackageManager()) != null) {
                     startActivity(mapIntent);
                 } else {
-                    // Fallback
+
                     Uri geoUri = Uri.parse("geo:" + point.latitude + "," + point.longitude);
                     startActivity(new Intent(Intent.ACTION_VIEW, geoUri));
                 }

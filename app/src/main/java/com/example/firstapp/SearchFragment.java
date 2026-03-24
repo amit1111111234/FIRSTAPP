@@ -1,6 +1,7 @@
 package com.example.firstapp;
 
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
@@ -22,11 +23,11 @@ public class SearchFragment extends Fragment {
 
     private EditText etSearch;
     private RecyclerView rvResults;
+    private View layoutNoResults;
     private List<MapPoint> allPoints = new ArrayList<>();
     private List<MapPoint> filteredPoints = new ArrayList<>();
     private SearchAdapter adapter;
 
-    // 1. The Interface "Phone Line"
     public interface OnSearchClickListener {
         void onPointSelected(MapPoint point);
     }
@@ -36,7 +37,6 @@ public class SearchFragment extends Fragment {
     @Override
     public void onAttach(@NonNull Context context) {
         super.onAttach(context);
-        // Link this fragment to the Activity
         if (context instanceof OnSearchClickListener) {
             callback = (OnSearchClickListener) context;
         } else {
@@ -47,12 +47,28 @@ public class SearchFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_search, container, false);
+
+
         rvResults = view.findViewById(R.id.rvResults);
         etSearch = view.findViewById(R.id.etSearchField);
+        layoutNoResults = view.findViewById(R.id.layoutNoResults);
+
+
+        view.findViewById(R.id.btnBack).setOnClickListener(v -> {
+            getParentFragmentManager().popBackStack();
+        });
+
+
+        view.findViewById(R.id.btnAddMissingPoint).setOnClickListener(v -> {
+            Intent intent = new Intent(getActivity(), ActivityAddPoint.class);
+            startActivity(intent);
+        });
+
 
         rvResults.setLayoutManager(new LinearLayoutManager(getContext()));
         adapter = new SearchAdapter(filteredPoints);
         rvResults.setAdapter(adapter);
+
 
         FirebaseFirestore.getInstance().collection("Points")
                 .get()
@@ -70,10 +86,8 @@ public class SearchFragment extends Fragment {
             public void onTextChanged(CharSequence s, int start, int before, int count) {
                 filterResults(s.toString());
             }
-            @Override
-            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-            @Override
-            public void afterTextChanged(Editable s) {}
+            @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            @Override public void afterTextChanged(Editable s) {}
         });
 
         return view;
@@ -83,14 +97,23 @@ public class SearchFragment extends Fragment {
         filteredPoints.clear();
         if (query.isEmpty()) {
             filteredPoints.addAll(allPoints);
-        }
-        else {
-        for (MapPoint p : allPoints) {
-            if (p.title != null && p.title.toLowerCase().contains(query.toLowerCase())) {
-                filteredPoints.add(p);
+        } else {
+            for (MapPoint p : allPoints) {
+                if (p.title != null && p.title.toLowerCase().contains(query.toLowerCase())) {
+                    filteredPoints.add(p);
+                }
             }
         }
+
+
+        if (filteredPoints.isEmpty()) {
+            layoutNoResults.setVisibility(View.VISIBLE);
+            rvResults.setVisibility(View.GONE);
+        } else {
+            layoutNoResults.setVisibility(View.GONE);
+            rvResults.setVisibility(View.VISIBLE);
         }
+
         adapter.notifyDataSetChanged();
     }
 
@@ -108,16 +131,18 @@ public class SearchFragment extends Fragment {
         @Override
         public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
             MapPoint p = list.get(position);
+
             holder.text1.setText(p.title);
             holder.text1.setTextColor(0xFFFFFFFF);
-            holder.text2.setText(p.description);
+
+
+            holder.text2.setText(p.locationName);
             holder.text2.setTextColor(0xFFBCCFC2);
 
-            // Trigger the callback and close the fragment
             holder.itemView.setOnClickListener(v -> {
                 if (callback != null) {
                     callback.onPointSelected(p);
-                    getParentFragmentManager().popBackStack(); // Go back to map
+                    getParentFragmentManager().popBackStack();
                 }
             });
         }

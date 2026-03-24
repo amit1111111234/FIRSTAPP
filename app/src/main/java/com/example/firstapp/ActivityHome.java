@@ -28,21 +28,19 @@ public class ActivityHome extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
     private FusedLocationProviderClient fusedLocationClient;
-    private TextView tvWelcome; // This will handle the user name display
+    private TextView tvWelcome;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        // INITIALIZE VIEW - matching the ID in your XML
         tvWelcome = findViewById(R.id.tvWelcome);
 
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) mapFragment.getMapAsync(this);
 
-        // Fetch name from Firestore immediately
         fetchAndShowName();
 
         findViewById(R.id.btnAdd).setOnClickListener(v -> startActivity(new Intent(this, ActivityAddPoint.class)));
